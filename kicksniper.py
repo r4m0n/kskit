@@ -32,7 +32,7 @@ class sniper(object):
         #         'http://127.0.0.1:4444/wd/hub', desired_capabilities =\
         #             webdriver.DesiredCapabilities.HTMLUNITWITHJS)
         # Generally Chrome runs faster than the java standalone client.
-        
+
     def login(self):
         self.driver.get('https://www.kickstarter.com/login')
         for c in self.credentials:
@@ -50,9 +50,18 @@ class sniper(object):
             raise Exception
         return radio.find_element_by_xpath('..')
 
+    def _find_selected_pledge(self):
+        try: radio = self.driver.find_element_by_class_name(\
+            'selected')
+        except:
+            print('[' + ctime() + '] Error: reward ID not found!')
+            raise Exception
+        return radio.find_element_by_xpath('..')
+
     def verify(self):
         self.driver.get(self.manage_url)
         reward = self._find_reward()
+        selected = self._find_selected_pledge
         if self.description != reward.find_element_by_class_name('short').\
            text[:len(self.description)]:
             print('[' + ctime() + '] Error: description mismatch!')
@@ -61,12 +70,22 @@ class sniper(object):
                              get_attribute('title').replace(',','')[1:])
         self.original = float(self.driver.find_element_by_id(\
             'backing_original_pledge').get_attribute('value'))
-        if self.original < self.minimum:
-            print('[' + ctime() + '] Error: original pledge < target reward!')
+        currentValue = float(reward.find_element_by_class_name('radio').\
+                             get_attribute('title').replace(',','')[1:])
+        print('[' + ctime() + '] Current pledge reward value: $' + str(currentValue))
+
+        # Multiply by 100 and convert to int to do subtraction
+        difference = float(((int(currentValue * 100) - int(self.minimum * 100)) / 100))
+        self.pledge = float(((int(self.original * 100) - int(difference * 100)) / 100))
+        print('[' + ctime() + '] Difference between pledge levels: $' + str(difference))
+
+        if self.pledge < self.minimum:
+            print('[' + ctime() + '] Error: pledge amount < target reward!')
             raise Exception
         print('[' + ctime() + '] Target reward: $' + str(self.minimum))
         print('[' + ctime() + '] Original pledge: $' + str(self.original))
-    
+        print('[' + ctime() + '] Will change pledge to: $' + str(self.pledge))
+
     def _snipe(self):
         reward = self._find_reward()
         reward_class = reward.get_attribute('class')
@@ -74,16 +93,16 @@ class sniper(object):
             return False
         elif 'disabled' not in reward_class:
             print('\n[' + ctime() + '] Attempting snipe...')
-            if self.original > self.minimum:
+            if self.pledge != self.original:
                 print('[' + ctime() + '] Setting pledge to target reward.')
                 amount = self.driver.find_element_by_id('backing_amount')
                 amount.clear()
-                amount.send_keys(str(self.minimum))
-                
+                amount.send_keys(str(self.pledge))
+
             last = self.driver.find_element_by_class_name('last')
             try: last.click() # workaround for checkout_actions obscuring elem
             except: pass      # by forcing selenium to scroll to bottom first
-            
+
             reward.click()
             self.driver.find_element_by_class_name('submit').submit()
             self.driver.find_element_by_class_name('confirm-yes').click()
@@ -100,7 +119,7 @@ class sniper(object):
         if self.count % 9 == 0:     pb += u'\u258c'
         else:                       pb += u'\u2584'
         return pb
-        
+
     def loop(self):
         self.count, armed = 0, True
         while armed:
@@ -116,7 +135,7 @@ class sniper(object):
 def main(args):
     if len(args) < 8:
         return 'Error: check arguments!'
-    
+
     mysniper = sniper()
     mysniper.args = args
     commands = (('Initializing Kicksniper...', mysniper.init),
@@ -130,7 +149,7 @@ def main(args):
         print('[' + ctime() + '] ' + c[0])
         c[1]()
     run_time = time() - start_time
-    
+
     print('[' + ctime() + '] Success! (' + str(mysniper.count) +\
           ' runs, ' + str(timedelta(seconds = int(run_time))) + ' run time)')
     raw_input('Press any key to exit...\n')
