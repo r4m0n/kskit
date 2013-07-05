@@ -76,7 +76,8 @@ class sniper(object):
 
         # Multiply by 100 and convert to int to do subtraction
         difference = float(((int(currentValue * 100) - int(self.minimum * 100)) / 100))
-        self.pledge = float(((int(self.original * 100) - int(difference * 100)) / 100))
+        self.pledge = self.original - difference 
+
         print('[' + ctime() + '] Difference between pledge levels: $' + str(difference))
 
         if self.pledge < self.minimum:
