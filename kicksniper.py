@@ -51,17 +51,20 @@ class sniper(object):
         return radio.find_element_by_xpath('..')
 
     def _find_selected_pledge(self):
-        try: radio = self.driver.find_element_by_class_name(\
-            'selected')
+        try: 
+            radios = self.driver.find_elements_by_class_name('radio')
+            for radio in radios:
+                if radio.is_selected():
+                    break;
         except:
             print('[' + ctime() + '] Error: reward ID not found!')
             raise Exception
-        return radio.find_element_by_xpath('..')
+        return float(radio.get_attribute('title').replace(',','')[1:])
 
     def verify(self):
         self.driver.get(self.manage_url)
         reward = self._find_reward()
-        selected = self._find_selected_pledge
+        selected = self._find_selected_pledge()
         if self.description != reward.find_element_by_class_name('short').\
            text[:len(self.description)]:
             print('[' + ctime() + '] Error: description mismatch!')
@@ -70,12 +73,10 @@ class sniper(object):
                              get_attribute('title').replace(',','')[1:])
         self.original = float(self.driver.find_element_by_id(\
             'backing_original_pledge').get_attribute('value'))
-        currentValue = float(reward.find_element_by_class_name('radio').\
-                             get_attribute('title').replace(',','')[1:])
-        print('[' + ctime() + '] Current pledge reward value: $' + str(currentValue))
+        print('[' + ctime() + '] Current pledge reward value: $' + str(selected))
 
         # Multiply by 100 and convert to int to do subtraction
-        difference = float(((int(currentValue * 100) - int(self.minimum * 100)) / 100))
+        difference = float(((int(selected * 100) - int(self.minimum * 100)) / 100))
         self.pledge = self.original - difference 
 
         print('[' + ctime() + '] Difference between pledge levels: $' + str(difference))
