@@ -27,7 +27,7 @@ class sniper(object):
                           self.args[4] + '/pledge/edit?ref=manage_pledge'
         self.reward_id, self.description = self.args[5:7]
         self.sleeper = int(self.args[7])
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.PhantomJS()
         # self.driver = webdriver.Remote(command_executor =\
         #         'http://127.0.0.1:4444/wd/hub', desired_capabilities =\
         #             webdriver.DesiredCapabilities.HTMLUNITWITHJS)
