@@ -8,7 +8,7 @@
         3: creator ID
         4: project ID
         5: desired reward ID
-        6: desired reward desc (leading snippet, quoted)
+        6: desired reward value (money class, ex: "$99")
         7: polling interval (seconds) '''
 import sys
 from selenium import webdriver
@@ -25,7 +25,7 @@ class sniper(object):
         self.manage_url = 'http://www.kickstarter.com/projects/' +\
                           self.args[3] + '/' +\
                           self.args[4] + '/pledge/edit?ref=manage_pledge'
-        self.reward_id, self.description = self.args[5:7]
+        self.reward_id, self.money = self.args[5:7]
         self.sleeper = int(self.args[7])
         self.driver = webdriver.PhantomJS()
         # self.driver = webdriver.Remote(command_executor =\
@@ -65,9 +65,9 @@ class sniper(object):
         self.driver.get(self.manage_url)
         reward = self._find_reward()
         selected = self._find_selected_pledge()
-        if self.description != reward.find_element_by_class_name('short').\
-           text[:len(self.description)]:
-            print('[' + ctime() + '] Error: description mismatch!')
+        if self.money != reward.find_element_by_class_name('money').\
+           text[:len(self.money)]:
+            print('[' + ctime() + '] Error: money mismatch!')
             raise Exception
         self.minimum = float(reward.find_element_by_class_name('radio').\
                              get_attribute('title').replace(',','')[1:])
