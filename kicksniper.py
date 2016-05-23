@@ -48,7 +48,7 @@ class sniper(object):
         except Exception as inst:
             print('[' + ctime() + '] Error: reward ID not found! URL = ' + self.manage_url)
             raise inst
-        return radio.find_element_by_xpath('..')
+        return radio.find_element_by_xpath('../..')
 
     def _find_selected_pledge(self):
         try: 
@@ -93,21 +93,12 @@ class sniper(object):
         reward_class = reward.get_attribute('class')
         if 'selected' in reward_class:
             return False
-        elif 'disabled' not in reward_class:
+        elif 'all-gone' not in reward_class:
             print('\n[' + ctime() + '] Attempting snipe...')
-            if self.pledge != self.original:
-                print('[' + ctime() + '] Setting pledge to target reward.')
-                amount = self.driver.find_element_by_id('backing_amount')
-                amount.clear()
-                amount.send_keys(str(self.pledge))
-
-            last = self.driver.find_element_by_class_name('last')
-            try: last.click() # workaround for checkout_actions obscuring elem
-            except: pass      # by forcing selenium to scroll to bottom first
-
+            
             reward.click()
-            self.driver.find_element_by_class_name('submit').submit()
-            self.driver.find_element_by_class_name('confirm-yes').click()
+            reward.find_element_by_class_name('pledge__checkout-submit').submit()
+            self.driver.find_element_by_class_name('js-confirm-yes').click()
             return True # might not have successfully sniped, so check again
         else:
             sys.stdout.write(self._progbar())
