@@ -45,9 +45,9 @@ class sniper(object):
     def _find_reward(self):
         try: radio = self.driver.find_element_by_id(\
             'backing_backer_reward_id_' + str(self.reward_id))
-        except:
-            print('[' + ctime() + '] Error: reward ID not found!')
-            raise Exception
+        except Exception as inst:
+            print('[' + ctime() + '] Error: reward ID not found! URL = ' + self.manage_url)
+            raise inst
         return radio.find_element_by_xpath('..')
 
     def _find_selected_pledge(self):
@@ -56,10 +56,10 @@ class sniper(object):
             for radio in radios:
                 if radio.is_selected():
                     break;
-        except:
+        except Exception as inst:
             print('[' + ctime() + '] Error: reward ID not found!')
-            raise Exception
-        return float(radio.get_attribute('title').replace(',','')[1:])
+            raise inst
+        return float(radio.get_attribute('title').replace(',','').split()[0][1:])
 
     def verify(self):
         self.driver.get(self.manage_url)
@@ -67,10 +67,10 @@ class sniper(object):
         selected = self._find_selected_pledge()
         if self.money != reward.find_element_by_class_name('money').\
            text[:len(self.money)]:
-            print('[' + ctime() + '] Error: money mismatch!')
+            print('[' + ctime() + '] Error: money mismatch! Expected: "' + self.money + '" found "' + reward.find_element_by_class_name('money').text[:len(self.money)] + '"')
             raise Exception
         self.minimum = float(reward.find_element_by_class_name('radio').\
-                             get_attribute('title').replace(',','')[1:])
+                             get_attribute('title').replace(',','').split()[0][1:])
         self.original = float(self.driver.find_element_by_id(\
             'backing_original_pledge').get_attribute('value'))
         print('[' + ctime() + '] Current pledge reward value: $' + str(selected))
